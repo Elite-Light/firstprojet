@@ -4,4 +4,7 @@ scikit-learn
 numpy
 fastapi
 uvicorn
+python-multipart
+tensorflow
+pillow
 joblib
