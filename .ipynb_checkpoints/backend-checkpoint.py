@@ -1,12 +1,13 @@
 # ------------------------------------------------------- 
 # Requirements
 # ------------------------------------------------------- 
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI
 #from tensorflow.keras.models import load_model
 import numpy as np
 import io
 #from PIL import Image
-
+import joblib
+from pydantic import BaseModel
 # ------------------------------------------------------- 
 # App
 # ------------------------------------------------------- 
@@ -18,7 +19,7 @@ app = FastAPI()
 
 def load():
     model_path = "3-projet/Forêt Aleatoire.pkl"
-    model = load_model(model_path)
+    model = joblib.load(model_path)
     return model
 
 # ------------------------------------------------------- 
@@ -36,16 +37,37 @@ def api_info():
 # ------------------------------------------------------- 
 # Second route
 # ------------------------------------------------------- 
+
+class CustomerData(BaseModel):
+    gender: int
+    tenure: int
+    MultipleLines_yes: int
+    InternetService_Fiber: int
+    OnlineSecurity_Yes: int
+    DeviceProtection_No: int
+    StreamingTV_No: int
+    Contract_Two: int
+    Contract_One: int
+    PaperlessBilling: int
+    PaymentMethod_Electronic: int
+    MonthlyCharges: float
+    TotalCharges: float
+    TechSupport_Yes: int
+
 @app.post("/predict")
-async def predict(file: UploadFile):
-    image_data = await file.read()
-    img = Image.open(io.BytesIO(image_data))
-    img_processed = preprocess(img)
-    predictions = model.predict(img_processed)
-    print(predictions)
-    proba = float(predictions[0][0])
-    return {
-        "cat_proba": 1 - proba,
-        "dog_proba": proba,
-        "predict_class": "dog" if proba > 0.5 else "cat"
-    }
+def predict(data: CustomerData):
+    # Conversion des données en tableau numpy
+    data_array = np.array([[data.TotalCharges, data.tenure, data.MonthlyCharges,
+       data.PaymentMethod_Electronic, data.InternetService_Fiber,
+       data.Contract_Two, data.gender, data.OnlineSecurity_Yes, data.PaperlessBilling,
+       data.TechSupport_Yes, data.Contract_One, data.MultipleLines_Yes,
+       data.StreamingTV_No,
+       frame_two.DeviceProtection_No]])
+
+ # Application  du scaler
+    data_scaled = scaler.transform(data_array)
+    
+    # Prédiction
+    prediction = model.predict(data_scaled)
+    
+    return {"Churn": "Yes" if prediction[0] == 1 else "No"}
