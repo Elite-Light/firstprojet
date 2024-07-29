@@ -4,7 +4,7 @@
 import uvicorn
 from fastapi import FastAPI
 #from tensorflow.keras.models import load_model
-import Forêt Aleatoire
+import Forêt_Aleatoire
 import numpy as np
 import io
 #from PIL import Image
