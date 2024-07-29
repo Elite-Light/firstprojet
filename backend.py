@@ -1,12 +1,13 @@
 # ------------------------------------------------------- 
 # Requirements
 # ------------------------------------------------------- 
+import uvicorn
 from fastapi import FastAPI
 #from tensorflow.keras.models import load_model
 import numpy as np
 import io
 #from PIL import Image
-import joblib
+import pickle
 from pydantic import BaseModel
 # ------------------------------------------------------- 
 # App
@@ -22,11 +23,11 @@ app = FastAPI()
     #model = joblib.load(model_path)
    # return model
 # 
-model = joblib.load('Forêt Aleatoire.pkl')
+# model = joblib.load('Forêt Aleatoire.pkl')
 # ------------------------------------------------------- 
 # Load the model on app setup
 # ------------------------------------------------------- 
-model = load()
+#model = load()
 
 # ------------------------------------------------------- 
 # First route
@@ -56,7 +57,9 @@ class CustomerData(BaseModel):
     TechSupport_Yes: int
 
 @app.post("/predict")
-def predict(data: CustomerData):
+async def predict(data: CustomerData):
+    # Chargement du modèle
+    model = pickle.load(open('Forêt Aleatoire.pkl', "rb")
     # Conversion des données en tableau numpy
     data_array = np.array([[data.TotalCharges, data.tenure, data.MonthlyCharges,
        data.PaymentMethod_Electronic, data.InternetService_Fiber,
@@ -65,10 +68,13 @@ def predict(data: CustomerData):
        data.StreamingTV_No,
        frame_two.DeviceProtection_No]])
 
- # Application  du scaler
+    # Application  du scaler
     data_scaled = scaler.transform(data_array)
     
     # Prédiction
     prediction = model.predict(data_scaled)
     
     return {"Churn": "Yes" if prediction[0] == 1 else "No"}
+
+if __name__ =="__backend__":
+    uvicorn.run("backend:app", host=127.0.0.1, port=10000, log_level='info', reload=True)

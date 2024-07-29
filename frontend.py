@@ -1,5 +1,5 @@
 import streamlit as st
-from PIL import Image
+#from PIL import Image
 import requests
 
 st.set_page_config(
@@ -29,18 +29,18 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-upload = st.file_uploader("Upload an image of a cat or dog", type=['png', 'jpg', 'jpeg'])
+#upload = st.file_uploader("Upload an image of a cat or dog", type=['png', 'jpg', 'jpeg'])
 
 if upload:
     files = {"file": upload.getvalue()}
 
-    with st.spinner("Analyzing the image..."):
+    with st.spinner("Analyzing the data..."):
         req = requests.post("http://localhost:8000/predict", files=files)
         resultat = req.json()
         prob_cat = resultat["cat_proba"] * 100
         prob_dog = resultat["dog_proba"] * 100
 
-    st.image(Image.open(upload), caption="Uploaded Image", use_column_width=True)
+    #st.image(Image.open(upload), caption="Uploaded Image", use_column_width=True)
 
     st.subheader("Prediction Results")
     if prob_cat > prob_dog:
