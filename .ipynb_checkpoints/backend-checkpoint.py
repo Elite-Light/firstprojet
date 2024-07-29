@@ -17,11 +17,12 @@ app = FastAPI()
 # Utils
 # ------------------------------------------------------- 
 
-def load():
-    model_path = "3-projet/Forêt Aleatoire.pkl"
-    model = joblib.load(model_path)
-    return model
-
+#def load():
+   # model_path = "3-projet/Forêt Aleatoire.pkl"
+    #model = joblib.load(model_path)
+   # return model
+# 
+model = joblib.load('Forêt Aleatoire.pkl')
 # ------------------------------------------------------- 
 # Load the model on app setup
 # ------------------------------------------------------- 
