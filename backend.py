@@ -28,6 +28,9 @@ app = FastAPI()
 # Load the model on app setup
 # ------------------------------------------------------- 
 #model = load()
+# Chargement du modèle
+pickle_in = open("Forêt Aleatoire.pkl", "rb")
+model = pickle.load(open(pickle_in)
 
 # ------------------------------------------------------- 
 # First route
@@ -57,9 +60,7 @@ class CustomerData(BaseModel):
     TechSupport_Yes: int
 
 @app.post("/predict")
-async def predict(data: CustomerData):
-    # Chargement du modèle
-    model = pickle.load(open('Forêt Aleatoire.pkl', "rb")
+def predict(data: CustomerData):
     # Conversion des données en tableau numpy
     data_array = np.array([[data.TotalCharges, data.tenure, data.MonthlyCharges,
        data.PaymentMethod_Electronic, data.InternetService_Fiber,
@@ -77,4 +78,4 @@ async def predict(data: CustomerData):
     return {"Churn": "Yes" if prediction[0] == 1 else "No"}
 
 if __name__ =="__backend__":
-    uvicorn.run("backend:app", host=127.0.0.1, port=10000, log_level='info', reload=True)
+    uvicorn.run("backend:app", host='127.0.0.1', port=10000, log_level='info', reload=True)
