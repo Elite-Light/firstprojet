@@ -2,14 +2,15 @@
 # Requirements
 # ------------------------------------------------------- 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPExeption
 #from tensorflow.keras.models import load_model
 import Forêt_Aleatoire
 import numpy as np
 import io
 #from PIL import Image
-import pickle
+import joblib
 from pydantic import BaseModel
+from pathlib import Path
 # ------------------------------------------------------- 
 # App
 # ------------------------------------------------------- 
@@ -30,21 +31,20 @@ app = FastAPI()
 # ------------------------------------------------------- 
 #model = load()
 # Chargement du modèle
-pickle_in = open("Forêt_Aleatoire.pkl", "rb")
-model = pickle.load(open(pickle_in)
+
 
 # ------------------------------------------------------- 
 # First route
 # ------------------------------------------------------- 
-@app.get("/")
+'''@app.get("/")
 def api_info():
-    return {"info": "Welcome carapuce"}
+    return {"info": "Welcome carapuce"}'''
 
 # ------------------------------------------------------- 
 # Second route
 # ------------------------------------------------------- 
 
-class CustomerData(BaseModel):
+'''class CustomerData(BaseModel):
     gender: int
     tenure: int
     MultipleLines_yes: int
@@ -58,9 +58,15 @@ class CustomerData(BaseModel):
     PaymentMethod_Electronic: int
     MonthlyCharges: float
     TotalCharges: float
-    TechSupport_Yes: int
+    TechSupport_Yes: int'''
 
-@app.post("/predict")
+# load model
+
+def load_model(model_path):
+    return joblib.load(model_path)
+
+
+'''@app.post("/predict")
 def predict(data: CustomerData):
     # Conversion des données en tableau numpy
     data_array = np.array([[data.TotalCharges, data.tenure, data.MonthlyCharges,
@@ -79,4 +85,73 @@ def predict(data: CustomerData):
     return {"Churn": "Yes" if prediction[0] == 1 else "No"}
 
 if __name__ =="__backend__":
-    uvicorn.run("backend:app", host='127.0.0.1', port=10000, log_level='info', reload=True)
+    uvicorn.run("backend:app", host='127.0.0.1', port=10000, log_level='info', reload=True)'''
+def preprocess(data: CustomerData):
+    # Exemple de prétraitement - ajustez-le en fonction des besoins de votre modèle
+    feature_order = [
+        'tenure', 'MultipleLines_Yes', 'InternetService_Fiber', 'OnlineSecurity_Yes', 'gender' 
+        'DeviceProtection_No', 'TechSupport_Yes', 'StreamingTV_No', 
+        'Contract_Two', 'Contract_One', 'PaperlessBilling', 'PaymentMethod_Electronic', 'MonthlyCharges', 'TotalCharges'
+    ]
+
+    categorical_features = [
+        'MultipleLines_Yes', 'InternetService_Fiber',
+        'OnlineSecurity_Yes', 'DeviceProtection_No', 'TechSupport_Yes',
+        'PaymentMethod_Electronic', 'Contract_One', 'Contract_Two'
+    ]
+
+    # Convertir l'objet Pydantic en dictionnaire
+    data_dict = data.dict()
+
+    # Encodeur fictif (à remplacer par votre encodeur réel)
+    encoded_features = []
+    for feature in feature_order:
+        if feature in categorical_features:
+            # Encoder la caractéristique catégorielle (exemple de transformation)
+            encoded_feature = encode_categorical_feature(feature, data_dict[feature])
+            encoded_features.extend(encoded_feature)
+        else:
+            encoded_features.append(data_dict[feature])
+    
+    return np.array(encoded_features).reshape(1, -1)
+
+def encode_categorical_feature(feature, value):
+    # Exemple d'encodage pour une caractéristique catégorielle
+    # Remplacez-le par votre méthode d'encodage réelle (par exemple, One-Hot Encoding)
+    encoding_map = {
+        'Yes': 1,
+        'No': 0,
+        # Ajoutez ici toutes les valeurs possibles pour chaque caractéristique catégorielle
+    }
+    return [encoding_map.get(value, -1)]  # Retourne -1 si la valeur n'est pas trouvée (à ajuster)
+
+# ------------------------------------------------------- 
+# Load the model on app setup
+# ------------------------------------------------------- 
+model_path = Path(__file__).parent / "Forêt_Aleatoire.pkl"
+model = load_model(model_path)
+# ------------------------------------------------------- 
+# First route
+# ------------------------------------------------------- 
+@app.get("/")
+def api_info():
+    return {"info": "Welcome to the churn prediction API"}
+
+# ------------------------------------------------------- 
+# Second route
+# ------------------------------------------------------- 
+@app.post("/predict")
+async def predict(data: CustomerData):
+    try:
+        # Prétraiter les données
+        processed_data = preprocess(data)
+        
+        # Faire la prédiction
+        prediction = model.predict(processed_data)
+        
+        # Retourner la prédiction
+        return {
+            "Churn": "Yes" if prediction[0] else "No"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
