@@ -5,6 +5,8 @@ numpy
 fastapi
 uvicorn
 python-multipart
-tensorflow
+joblib
 pillow
 joblib
+pydantic
+pickle
