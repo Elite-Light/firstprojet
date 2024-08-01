@@ -79,4 +79,4 @@ def predict(data: CustomerData):
     return {"Churn": "Yes" if prediction[0] == 1 else "No"}
 
 if __name__ =="__backend__":
-    uvicorn.run("backend:app", host='127.0.0.1', port=8889, log_level='info', reload=True)
+    uvicorn.run("backend:app", host='127.0.0.1', port=10000, log_level='info', reload=True)
