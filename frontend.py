@@ -1,15 +1,14 @@
 import streamlit as st
-#from PIL import Image
 import requests
 
 st.set_page_config(
-    page_title="Cat vs Dog Classifier",
-    page_icon=":cat: :dog:",
+    page_title="Churn Prediction",
+    page_icon=":chart_with_upwards_trend:",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
 
-st.title("Cat vs Dog Classifier :cat: :dog:")
+st.title("Churn Prediction :chart_with_upwards_trend:")
 
 st.markdown(
     """
@@ -29,37 +28,76 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-#upload = st.file_uploader("Upload an image of a cat or dog", type=['png', 'jpg', 'jpeg'])
+st.sidebar.header("User Input")
 
-if upload:
-    files = {"file": upload.getvalue()}
+# Collecting user input
+senior_citizen = st.sidebar.selectbox("Senior Citizen", [0, 1])
+partner = st.sidebar.selectbox("Partner", ["Yes", "No"])
+dependents = st.sidebar.selectbox("Dependents", ["Yes", "No"])
+tenure = st.sidebar.number_input("Tenure (months)", min_value=0, value=0)
+phone_service = st.sidebar.selectbox("Phone Service", ["Yes", "No"])
+multiple_lines = st.sidebar.selectbox("Multiple Lines", ["No phone service", "No", "Yes"])
+internet_service = st.sidebar.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
+online_security = st.sidebar.selectbox("Online Security", ["No", "Yes", "No internet service"])
+online_backup = st.sidebar.selectbox("Online Backup", ["Yes", "No", "No internet service"])
+device_protection = st.sidebar.selectbox("Device Protection", ["No", "Yes", "No internet service"])
+tech_support = st.sidebar.selectbox("Tech Support", ["No", "Yes", "No internet service"])
+streaming_tv = st.sidebar.selectbox("Streaming TV", ["No", "Yes", "No internet service"])
+streaming_movies = st.sidebar.selectbox("Streaming Movies", ["No", "Yes", "No internet service"])
+contract = st.sidebar.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
+paperless_billing = st.sidebar.selectbox("Paperless Billing", ["Yes", "No"])
+payment_method = st.sidebar.selectbox("Payment Method", ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"])
+monthly_charges = st.sidebar.number_input("Monthly Charges", min_value=0.0, value=0.0)
+total_charges = st.sidebar.number_input("Total Charges", min_value=0.0, value=0.0)
 
-    with st.spinner("Analyzing the data..."):
-        req = requests.post("http://localhost:8000/predict", files=files)
-        resultat = req.json()
-        prob_cat = resultat["cat_proba"] * 100
-        prob_dog = resultat["dog_proba"] * 100
+# Making a prediction
+input_data = {
+    "SeniorCitizen": senior_citizen,
+    "Partner": partner,
+    "Dependents": dependents,
+    "tenure": tenure,
+    "PhoneService": phone_service,
+    "MultipleLines": multiple_lines,
+    "InternetService": internet_service,
+    "OnlineSecurity": online_security,
+    "OnlineBackup": online_backup,
+    "DeviceProtection": device_protection,
+    "TechSupport": tech_support,
+    "StreamingTV": streaming_tv,
+    "StreamingMovies": streaming_movies,
+    "Contract": contract,
+    "PaperlessBilling": paperless_billing,
+    "PaymentMethod": payment_method,
+    "MonthlyCharges": monthly_charges,
+    "TotalCharges": total_charges,
+}
 
-    #st.image(Image.open(upload), caption="Uploaded Image", use_column_width=True)
+if st.sidebar.button("Predict Churn"):
+    with st.spinner("Analyzing the input..."):
+        # Send the input data to the backend API
+        response = requests.post("https://projectfastapi-3.onrender.com/docs", json=input_data)
+        result = response.json()
 
-    st.subheader("Prediction Results")
-    if prob_cat > prob_dog:
-        st.markdown(
-            f"""
-            <div style='padding: 2rem; background-color: #f8d7da; border-left: 5px solid #dc3545;'>
-            <h2 style='color: #721c24;'>Cat</h2>
-            <p>I am <strong>{prob_cat:.2f}%</strong> certain this is a cat.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            f"""
-            <div style='padding: 2rem; background-color: #d4edda; border-left: 5px solid #28a745;'>
-            <h2 style='color: #155724;'>Dog</h2>
-            <p>I am <strong>{prob_dog:.2f}%</strong> certain this is a dog.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        # Display the result
+        churn_prediction = result.get("churn_prediction", "Unknown")
+        st.subheader("Prediction Result")
+        if churn_prediction == "Yes":
+            st.markdown(
+                """
+                <div style='padding: 2rem; background-color: #f8d7da; border-left: 5px solid #dc3545;'>
+                <h2 style='color: #721c24;'>Churn Likely</h2>
+                <p>The model predicts that the customer is likely to churn.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """
+                <div style='padding: 2rem; background-color: #d4edda; border-left: 5px solid #28a745;'>
+                <h2 style='color: #155724;'>Churn Unlikely</h2>
+                <p>The model predicts that the customer is unlikely to churn.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
